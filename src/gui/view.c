@@ -126,6 +126,14 @@ dt_view_mouse_scrolled(GLFWwindow *window, double xoff, double yoff)
 }
 
 void
+dt_view_magnify(GLFWwindow *window, double magnification)
+{ // trackpad pinch gesture (macos only)
+  if(vkdt.wstate.popup) return;
+  if(vkdt.view_mode == s_view_nodes)
+    nodes_magnify(window, magnification);
+}
+
+void
 dt_view_char(GLFWwindow *window, unsigned int c)
 {
   switch(vkdt.view_mode)

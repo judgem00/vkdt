@@ -17,6 +17,7 @@
 #include "widget_image.h"
 #define KEYFRAME // empty define to disable hover/keyframe behaviour
 #include "render_darkroom.h"
+#include "trackpad.h"
 #include <stdint.h>
 
 static hk_t hk_nodes[] = {
@@ -297,22 +298,42 @@ void nodes_mouse_button(GLFWwindow *window, int button, int action, int mods)
   dt_gui_darkroom_dspy_mouse_button(window, button, action, mods);
 }
 
+static void
+nodes_zoom_at_cursor(GLFWwindow *window, float factor)
+{ // zoom around the mouse cursor, keeping the world space point under it fixed
+  double mx, my;
+  dt_view_get_cursor_pos(window, &mx, &my);
+  const struct nk_vec2 mouse = nk_vec2(mx-vkdt.state.center_x, my-vkdt.state.center_y);
+  struct nk_vec2 center_ws = dt_node_view_to_world(&nodes.nedit, mouse);
+
+  nodes.nedit.zoom *= factor;
+  nodes.nedit.zoom = CLAMP(nodes.nedit.zoom, 0.1, 10.0);
+
+  struct nk_vec2 center2_ws = dt_node_view_to_world(&nodes.nedit, mouse);
+  nodes.nedit.scroll.x += center_ws.x - center2_ws.x;
+  nodes.nedit.scroll.y += center_ws.y - center2_ws.y;
+}
+
 void nodes_mouse_scrolled(GLFWwindow *window, double xoff, double yoff)
 {
   if (nk_input_is_mouse_hovering_rect(&vkdt.ctx.input, nk_rect(vkdt.state.center_x, vkdt.state.center_y, vkdt.state.center_wd, vkdt.state.center_ht)))
   {
-    double mx, my;
-    dt_view_get_cursor_pos(window, &mx, &my);
-    const struct nk_vec2 mouse = nk_vec2(mx-vkdt.state.center_x, my-vkdt.state.center_y);
-    struct nk_vec2 center_ws = dt_node_view_to_world(&nodes.nedit, mouse);
-
-    nodes.nedit.zoom *= powf(1.2f, yoff);
-    nodes.nedit.zoom = CLAMP(nodes.nedit.zoom, 0.1, 10.0);
-
-    struct nk_vec2 center2_ws = dt_node_view_to_world(&nodes.nedit, mouse);
-    nodes.nedit.scroll.x += center_ws.x - center2_ws.x;
-    nodes.nedit.scroll.y += center_ws.y - center2_ws.y;
+    double dx, dy;
+    if(dt_trackpad_scroll_precise(&dx, &dy))
+    { // two finger trackpad scroll pans the graph, like middle mouse drag (pinch zooms)
+      float xscale, yscale;
+      dt_gui_content_scale(window, &xscale, &yscale);
+      nodes.nedit.scroll.x -= dx*xscale/(nodes.nedit.zoom*nodes.nedit.dpi_scale);
+      nodes.nedit.scroll.y -= dy*yscale/(nodes.nedit.zoom*nodes.nedit.dpi_scale);
+    }
+    else nodes_zoom_at_cursor(window, powf(1.2f, yoff));
   }
+}
+
+void nodes_magnify(GLFWwindow *window, double magnification)
+{
+  if (nk_input_is_mouse_hovering_rect(&vkdt.ctx.input, nk_rect(vkdt.state.center_x, vkdt.state.center_y, vkdt.state.center_wd, vkdt.state.center_ht)))
+    nodes_zoom_at_cursor(window, 1.0f + magnification);
 }
 
 void nodes_keyboard(GLFWwindow *window, int key, int scancode, int action, int mods)

@@ -113,6 +113,9 @@ fit/%.o: fit/%.c Makefile $(FIT_H) fit/flat.mk
 gui/%.o: gui/%.c Makefile $(GUI_H) gui/flat.mk
 	$(CC) $(CFLAGS) $(EXE_CFLAGS) $(OPT_CFLAGS) $(VK_CFLAGS) $(GUI_CFLAGS) -c $< -o $@
 
+gui/%.o: gui/%.m Makefile gui/trackpad.h gui/flat.mk
+	$(CC) $(CFLAGS) $(EXE_CFLAGS) $(OPT_CFLAGS) -c $< -o $@
+
 # main application
 # ======================
 ../bin/vkdt: $(GUI_O) $(QVK_O) $(CORE_O) $(SND_O) $(PIPE_O) $(DB_O) Makefile

@@ -12,6 +12,7 @@
 #include "gui/render.h"
 #include "gui/view.h"
 #include "gui/api.h"
+#include "gui/trackpad.h"
 #include "db/db.h"
 #include "nk.h"
 
@@ -123,6 +124,13 @@ scroll_callback(GLFWwindow *window, double xoff, double yoff)
     nk_glfw3_scroll_callback(window, xoff, yoff);
 }
 
+static void
+magnify_callback(double magnification)
+{
+  if(vkdt.wstate.chord_menu_active) return;
+  dt_view_magnify(vkdt.win.window, magnification);
+}
+
 #if VKDT_USE_PENTABLET==1
 static void
 pentablet_data_callback(double x, double y, double z, double pressure, double pitch, double yaw, double roll)
@@ -208,6 +216,7 @@ int main(int argc, char *argv[])
   glfwSetWindowCloseCallback(vkdt.win.window, window_close_callback);
   glfwSetWindowFocusCallback(vkdt.win.window, window_focus_callback);
   glfwSetJoystickCallback(joystick_callback);
+  dt_trackpad_init(magnify_callback);
 #if VKDT_USE_PENTABLET==1
   glfwSetPenTabletDataCallback(pentablet_data_callback);
   glfwSetPenTabletCursorCallback(pentablet_cursor_callback);

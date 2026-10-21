@@ -35,6 +35,7 @@ GUI_H=gui/gui.h\
       gui/widget_recentcollect.h\
       gui/widget_resize_panel.h\
       gui/widget_thumbnail.h\
+      gui/trackpad.h\
       gui/view.h\
       gui/darkroom.h\
       gui/lighttable.h\
@@ -51,6 +52,11 @@ GUI_H=gui/gui.h\
       pipe/graph-defaults.h
 GUI_CFLAGS=$(VKDT_GLFW_CFLAGS)
 GUI_LDFLAGS=-ldl $(VKDT_GLFW_LDFLAGS) -lm $(DYNAMIC)
+
+ifeq ($(shell uname),Darwin)
+GUI_O+=gui/trackpad.o
+GUI_LDFLAGS+=-framework Cocoa
+endif
 
 ifeq ($(VKDT_USE_PENTABLET),1)
 GUI_CFLAGS+=-DVKDT_USE_PENTABLET=1
