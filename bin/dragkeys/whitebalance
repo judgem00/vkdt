@@ -1,5 +1,7 @@
 # hold key and drag mouse to adjust white balance
 # right = warm (more red, less blue), left = cool
+# up = more green, down = more magenta (tint)
 key:w
 colour:01:white:0:0.001
 colour:01:white:2:-0.001
+colour:01:white:1:-0.001:1
