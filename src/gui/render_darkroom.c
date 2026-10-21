@@ -244,6 +244,17 @@ darkroom_keyboard(GLFWwindow *window, int key, int scancode, int action, int mod
     return;
   }
 
+#ifdef __APPLE__
+  if(action == GLFW_PRESS && (mods & GLFW_MOD_SUPER))
+  { // mac style cmd-z/cmd-shift-z, by the label on the key (independent of keyboard layout)
+    const char *name = glfwGetKeyName(key, scancode);
+    if(name && !strcmp(name, "z"))
+    {
+      gui.hotkey = (mods & GLFW_MOD_SHIFT) ? s_hotkey_redo : s_hotkey_undo;
+      goto hotkey_dispatch;
+    }
+  }
+#endif
   int mr = dt_menu_keyboard(&darkroom_menu, hk_darkroom, hk_darkroom_cnt, key, action, mods);
   if(mr == 1) return;
   if(mr < -1) { gui.hotkey = -(mr + 2); goto hotkey_dispatch; }
@@ -277,11 +288,9 @@ hotkey_dispatch:
       dt_gui_dr_toggle_history();
       break;
     case s_hotkey_redo:
-      dt_gui_dr_show_history();
       dt_gui_dr_history_redo();
       break;
     case s_hotkey_undo:
-      dt_gui_dr_show_history();
       dt_gui_dr_history_undo();
       break;
     case s_hotkey_assign_tag:
