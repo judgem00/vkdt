@@ -318,10 +318,27 @@ dt_image_events(struct nk_context *ctx, dt_image_widget_t *w, int hovered, int m
       dt_image_zoom(w, mpos.x, mpos.y);
     }
     float yoff = ctx->input.mouse.scroll_delta.y;
-    if(yoff != 0)
+    if(vkdt.wstate.trackpad_pan[0] != 0.0f || vkdt.wstate.trackpad_pan[1] != 0.0f)
+    { // two finger trackpad scroll pans, the image follows the fingers (pinch zooms)
+      ctx->input.mouse.scroll_delta = nk_vec2(0, 0);
+      float img0[2], img1[2];
+      float view0[2] = { mpos.x, mpos.y };
+      float view1[2] = { mpos.x + vkdt.wstate.trackpad_pan[0], mpos.y + vkdt.wstate.trackpad_pan[1] };
+      dt_image_from_view(w, view0, img0);
+      dt_image_from_view(w, view1, img1);
+      w->look_at_x += img0[0] - img1[0];
+      w->look_at_y += img0[1] - img1[1];
+      vkdt.wstate.trackpad_pan[0] = vkdt.wstate.trackpad_pan[1] = 0.0f;
+    }
+    else if(yoff != 0)
     { // mouse wheel (yoff is the input)
       ctx->input.mouse.scroll_delta.y = 0;
       dt_image_zoom_at(w, mpos.x, mpos.y, powf(dt_rc_get_float(&vkdt.rc, "gui/zoom_speed", 1.1f), yoff));
+    }
+    if(vkdt.wstate.trackpad_zoom != 1.0f)
+    { // trackpad pinch
+      dt_image_zoom_at(w, mpos.x, mpos.y, vkdt.wstate.trackpad_zoom);
+      vkdt.wstate.trackpad_zoom = 1.0f;
     }
   }
   else

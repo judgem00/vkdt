@@ -134,6 +134,8 @@ typedef struct dt_gui_wstate_t
   int   dragkey_latched;        // non-zero when a dragkey is armed (blocks image pan/zoom)
   float chord_menu_scroll;      // accumulated scroll delta while menu is open
   int   scroll_busy;            // dynamic LOD countdown
+  float trackpad_pan[2];        // trackpad two finger scroll this frame, in pixels (macos only)
+  float trackpad_zoom;          // trackpad pinch zoom factor this frame, 1 means none (macos only)
   int   pending_modid;           // module to activate in right panel (-1 = none), set by menu/dragkey
   int   pending_widget_modid;   // module to start interactive widget for (-1 = none)
   int   pending_widget_parid;   // param index for pending widget start

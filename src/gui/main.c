@@ -119,6 +119,12 @@ scroll_callback(GLFWwindow *window, double xoff, double yoff)
   dt_gui_content_scale(window, &xscale, &yscale);
   xoff *= xscale;
   yoff *= yscale;
+  double dx, dy;
+  if(dt_trackpad_scroll_precise(&dx, &dy))
+  { // collect for the image widget, which pans instead of zooming
+    vkdt.wstate.trackpad_pan[0] += dx*xscale;
+    vkdt.wstate.trackpad_pan[1] += dy*yscale;
+  }
   dt_view_mouse_scrolled(window, xoff, yoff);
   if(!vkdt.wstate.grabbed)
     nk_glfw3_scroll_callback(window, xoff, yoff);
@@ -128,6 +134,7 @@ static void
 magnify_callback(double magnification)
 {
   if(vkdt.wstate.chord_menu_active) return;
+  vkdt.wstate.trackpad_zoom *= 1.0 + magnification;
   dt_view_magnify(vkdt.win.window, magnification);
 }
 
@@ -306,6 +313,8 @@ int main(int argc, char *argv[])
     vkdt.wstate.delta_time = end_rf - beg_rf;
     beg_rf = end_rf;
 
+    vkdt.wstate.trackpad_pan[0] = vkdt.wstate.trackpad_pan[1] = 0.0f;
+    vkdt.wstate.trackpad_zoom = 1.0f;
     // collect input from windows for our contexts.
     // enable mouse grab only on wayland (is buggy on x11 and windows for wacom, see https://github.com/hanatos/vkdt/issues/144)
     nk_glfw3_input_begin(&vkdt.ctx, vkdt.win.window, vkdt.session_type == 1);
